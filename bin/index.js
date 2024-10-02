@@ -1,6 +1,5 @@
 const fs = require("fs");
 const { FFCreator, FFImage, FFScene, FFVideo } = require("ffcreator");
-//const { getVideoDurationInSeconds } = require("get-video-duration");
 const { DOMParser } = require('xmldom');
 const xpath = require('xpath');
 const concat = require('ffmpeg-concat');
@@ -19,20 +18,23 @@ const run = async () => {
       case "video": return dir + "/" + node.getAttribute("src");
     }
   });
-  outputFinal(videos);
-  console.log("Videos", videos);
-  
+  console.log("Finalizing video");
+  await outputFinal(videos);
+  cleanup(videos);
 }
-/*
-const getDuration = async (videoPath) => {
-  console.log("Getting duration", videoPath);
-  const promise = new Promise((resolve, reject) => {
-    getVideoDurationInSeconds(videoPath).then((duration) => { resolve(duration); });
-  });
-  return await promise;
-}*/
+
+const cleanup = (videos) => {
+  for (let i=0; i<videos.length; i++) {
+    if (videos[i].includes("/part")) {
+      try { fs.unlinkSync(videos[i]); }
+      catch {}
+      fs.unlinkSync(dir + "/part" + i + ".mp3");
+    }
+  }
+}
 
 const outputFinal = async (videos) => {
+  if (videos.length === 1) { fs.renameSync(videos[0], dir + "/output.mp4"); return; }
   await concat({
     output: dir + "/output.mp4",
     videos: videos,
@@ -41,25 +43,6 @@ const outputFinal = async (videos) => {
       duration: 500
     }
   });
-  /*
-  const creator = new FFCreator({ width: 1920, height: 1080 });
-  for (let i = 0; i < videos.length; i++) {
-    const duration = await getDuration(videos[i]);
-    const scene = new FFScene({x:0, y:0});
-    scene.setBgColor("#000000");
-    scene.setDuration((duration));
-    creator.addChild(scene);
-    console.log("PATH", videos[i], duration)
-    const video = new FFVideo({ path: videos[i], width:1920, height:1080, x:1920/2, y:1080/2 });
-    scene.addChild(video);
-  }
-  creator.output(dir + "/output.mp4");
-  creator.start();
-  const promise = new Promise((resolve, reject) => {
-    creator.on("complete", function (e) { resolve(); });
-    creator.on("error", function (e) { reject(); });
-  });
-  await promise;*/
 }
 
 const handleSpeak = async (ssml, index) => {
@@ -72,7 +55,6 @@ const handleSpeak = async (ssml, index) => {
   });
   
   for (let i = 0; i < images.length-1; i++) { images[i].duration += images[i+1].start - images[i].start; }
-  console.log(images);
   images.splice(images.length-1, 1);
   //console.log(images)
 
@@ -117,12 +99,18 @@ const createVideo = async (audioPath, screenshots, fileName) => {
     createScene(creator, screenshot.path, await screenshot.duration);  
   }
   
+  let lastProgress = 0;
 
   creator.output(dir + "/" + fileName);
   creator.start();
   const promise = new Promise((resolve, reject) => {
     creator.on("complete", function (e) { resolve(); });
     creator.on("error", function (e) { reject(); });
+    creator.on("progress", function (e) { 
+      let current = Math.round(e.percent*100);
+      //console.log(current + "%");
+      if (current > lastProgress + 10) { console.log(current + "%"); lastProgress = current; }
+    });
   });
   await promise;
   
