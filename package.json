@@ -1,0 +1,17 @@
+{
+  "name": "tutorial-maker",
+  "version": "1.0.0",
+  "description": "Creates tutorial videos from instruction files",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "bin": {
+    "tutorial-maker": "./bin/tutorial-maker.cmd"
+  },
+  "dependencies": {
+    "ffcreator": "^7.5.8"
+  }
+}
