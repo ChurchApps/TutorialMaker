@@ -38,10 +38,7 @@ const outputFinal = async (videos) => {
   await concat({
     output: dir + "/output.mp4",
     videos: videos,
-    transition: {
-      name: 'fade',
-      duration: 500
-    }
+    transition: {}
   });
 }
 
@@ -94,7 +91,8 @@ const createScene = (creator, imagePath, duration) => {
 const createVideo = async (audioPath, screenshots, fileName) => {
   const creator = new FFCreator({ width: 1920, height: 1080, audio: audioPath });
 
-  for (let i = 0; i < screenshots.length-1; i++) { 
+  //console.log("screensohts", screenshots)
+  for (let i = 0; i < screenshots.length; i++) { 
     const screenshot = screenshots[i];
     createScene(creator, screenshot.path, await screenshot.duration);  
   }
