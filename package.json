@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "bin": {
-    "tutorial-maker": "./bin/tutorial-maker.cmd"
+    "tutorial-maker": "./bin/tutorial-maker.js"
   },
   "dependencies": {
     "ffcreator": "^7.5.8",
